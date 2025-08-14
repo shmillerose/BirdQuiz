@@ -2,101 +2,179 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bird Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="referrer" content="no-referrer" />
+<title>Bird Quiz (Failproof)</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; background-color: #f8f8f8; }
-  #sidebar { width: 220px; background-color: #fff; border-right: 1px solid #ddd; padding: 20px; }
-  #main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-  h1 { font-size: 1.5rem; margin-bottom: 20px; }
-  img { max-width: 400px; max-height: 300px; object-fit: contain; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 20px; background-color: white; }
-  button { padding: 10px 20px; margin: 5px; border: none; background-color: #007BFF; color: white; border-radius: 4px; cursor: pointer; }
-  button:hover { background-color: #0056b3; }
-  .bird-info { margin-top: 10px; font-style: italic; color: #333; }
-  .filter { margin-bottom: 10px; display: block; }
+  :root { --bg:#f7f7f8; --panel:#fff; --border:#e5e7eb; --text:#111827; --accent:#2563eb; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--text); background:var(--bg); display:flex; min-height:100vh; }
+  #sidebar { width:240px; background:var(--panel); border-right:1px solid var(--border); padding:20px; }
+  #main { flex:1; padding:24px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  h1 { font-size:20px; margin:0 0 8px; }
+  .muted { color:#6b7280; font-size:12px; margin:0 0 16px; }
+  fieldset { border:0; padding:0; margin:0 0 12px; }
+  label { display:block; margin:6px 0; font-size:14px; }
+  button { appearance:none; border:1px solid var(--border); background:var(--panel); color:var(--text); padding:10px 14px; border-radius:8px; cursor:pointer; transition:.15s ease; font-weight:600; }
+  button:hover { border-color:#cbd5e1; box-shadow:0 1px 0 rgba(0,0,0,.03); }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  img { max-width:560px; max-height:380px; width:100%; object-fit:contain; border:1px solid var(--border); background:#fff; border-radius:10px; display:none; }
+  .row { display:flex; gap:8px; }
+  .answer { font-style:italic; min-height:20px; }
+  .hint { font-size:12px; color:#6b7280; }
+  .ok { color:#065f46; }
+  .bad { color:#b91c1c; }
 </style>
 </head>
 <body>
-  <div id="sidebar">
-    <h2>Filter by Location</h2>
-    <label class="filter"><input type="radio" name="location" value="all" checked> All</label>
-    <label class="filter"><input type="radio" name="location" value="us"> United States</label>
-    <label class="filter"><input type="radio" name="location" value="midwest"> US Midwest</label>
-    <label class="filter"><input type="radio" name="location" value="east"> US East Coast</label>
-    <label class="filter"><input type="radio" name="location" value="west"> US West Coast</label>
-    <label class="filter"><input type="radio" name="location" value="south"> US South</label>
-    <label class="filter"><input type="radio" name="location" value="canada"> Canada</label>
-    <label class="filter"><input type="radio" name="location" value="europe"> Europe</label>
-  </div>
-  <div id="main">
+  <aside id="sidebar">
+    <h2 style="margin:0 0 8px; font-size:18px;">Filter by location</h2>
+    <p class="muted">(Optional – narrows the pool)</p>
+    <fieldset id="filters">
+      <label><input type="radio" name="location" value="all" checked> All</label>
+      <label><input type="radio" name="location" value="us"> United States</label>
+      <label><input type="radio" name="location" value="midwest"> US Midwest</label>
+      <label><input type="radio" name="location" value="east"> US East Coast</label>
+      <label><input type="radio" name="location" value="west"> US West Coast</label>
+      <label><input type="radio" name="location" value="south"> US South</label>
+      <label><input type="radio" name="location" value="canada"> Canada</label>
+      <label><input type="radio" name="location" value="europe"> Europe</label>
+    </fieldset>
+    <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+    <button id="selfTestBtn" title="Quick check that images load from your site">Run image self‑test</button>
+    <p id="selfTestResult" class="hint" style="margin-top:8px;"></p>
+  </aside>
+
+  <main id="main">
     <h1>Bird Quiz</h1>
-    <button id="quizBtn">Quiz me on a bird</button>
-    <img id="birdImage" src="" alt="Bird" style="display:none;"/>
-    <div id="options" style="display:none;">
-      <button id="knowBtn">I know it</button>
-      <button id="dontKnowBtn">I don't know it</button>
+    <p class="muted">Click the button. If you don’t know it, reveal the name. Images load with no external APIs.</p>
+    <div class="row">
+      <button id="quizBtn" class="primary">Quiz me on a bird</button>
+      <button id="knowBtn" disabled>I know it</button>
+      <button id="dontKnowBtn" disabled>I don’t know it</button>
     </div>
-    <div id="birdName" class="bird-info"></div>
-  </div>
+    <img id="birdImage" alt="Random bird" referrerpolicy="no-referrer" crossorigin="anonymous">
+    <div id="birdName" class="answer"></div>
+    <p class="hint">If an image can’t load, this app automatically retries others and finally shows a built‑in fallback so you never get stuck.</p>
+  </main>
 
 <script>
-// Bird data: [imageURL, birdName] (from Wikimedia Commons - reliable for GitHub Pages)
-const birdImages = {
-  all: [
-    ["https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg", "American Robin"],
-    ["https://upload.wikimedia.org/wikipedia/commons/8/84/Northern_Cardinal_male.jpg", "Northern Cardinal"],
-    ["https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg", "Blue Jay"],
-    ["https://upload.wikimedia.org/wikipedia/commons/5/51/Mallard_drake.jpg", "Mallard"],
-    ["https://upload.wikimedia.org/wikipedia/commons/b/b4/European_Goldfinch.jpg", "European Goldfinch"]
+// --- Built‑in fallback (always works): tiny inline PNG of a bird silhouette
+const INLINE_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='380' viewBox='0 0 560 380'%3E%3Crect width='100%25' height='100%25' fill='%23ffffff'/%3E%3Ctext x='50%25' y='20%25' dominant-baseline='middle' text-anchor='middle' fill='%239aa1ab' font-family='Arial' font-size='16'%3EBird image fallback%3C/text%3E%3Cpath d='M120 250c60-80 140-80 200-60 30 10 60 10 100-10-30 40-60 60-90 70 10 10 40 30 70 40-60-10-110-40-150-60-20 30-60 50-130 20z' fill='%2390caf9'/%3E%3C/svg%3E";
+
+// Data: multiple CDN candidates per bird (first that loads wins)
+const CANDIDATES = {
+  "American Robin": [
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/American_Robin.jpg/640px-American_Robin.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg"
   ],
-  us: [
-    ["https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg", "American Robin"],
-    ["https://upload.wikimedia.org/wikipedia/commons/8/84/Northern_Cardinal_male.jpg", "Northern Cardinal"],
-    ["https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg", "Blue Jay"]
+  "Northern Cardinal": [
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Northern_Cardinal_male.jpg/640px-Northern_Cardinal_male.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/84/Northern_Cardinal_male.jpg"
   ],
-  midwest: [
-    ["https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg", "American Robin"]
+  "Blue Jay": [
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Blue_Jay.jpg/640px-Blue_Jay.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg"
   ],
-  east: [
-    ["https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg", "Blue Jay"]
+  "Mallard": [
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Mallard_drake.jpg/640px-Mallard_drake.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/5/51/Mallard_drake.jpg"
   ],
-  west: [
-    ["https://upload.wikimedia.org/wikipedia/commons/4/47/California_Scrub_Jay.jpg", "California Scrub Jay"]
+  "European Goldfinch": [
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/European_Goldfinch.jpg/640px-European_Goldfinch.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/b/b4/European_Goldfinch.jpg"
   ],
-  south: [
-    ["https://upload.wikimedia.org/wikipedia/commons/5/5d/Northern_Mockingbird.jpg", "Northern Mockingbird"]
+  "California Scrub Jay": [
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/California_Scrub_Jay.jpg/640px-California_Scrub_Jay.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/4/47/California_Scrub_Jay.jpg"
   ],
-  canada: [
-    ["https://upload.wikimedia.org/wikipedia/commons/3/35/Gray_Jay.jpg", "Gray Jay"]
+  "Northern Mockingbird": [
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Northern_Mockingbird.jpg/640px-Northern_Mockingbird.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/5/5d/Northern_Mockingbird.jpg"
   ],
-  europe: [
-    ["https://upload.wikimedia.org/wikipedia/commons/b/b4/European_Goldfinch.jpg", "European Goldfinch"]
+  "Gray Jay": [
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Gray_Jay.jpg/640px-Gray_Jay.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/3/35/Gray_Jay.jpg"
   ]
 };
 
-let currentBird = null;
+const SETS = {
+  all: ["American Robin","Northern Cardinal","Blue Jay","Mallard","European Goldfinch","California Scrub Jay","Northern Mockingbird","Gray Jay"],
+  us: ["American Robin","Northern Cardinal","Blue Jay","Northern Mockingbird"],
+  midwest: ["American Robin"],
+  east: ["Blue Jay"],
+  west: ["California Scrub Jay"],
+  south: ["Northern Mockingbird"],
+  canada: ["Gray Jay"],
+  europe: ["European Goldfinch"]
+};
 
-document.getElementById("quizBtn").addEventListener("click", () => {
+let current = null;
+const img = document.getElementById('birdImage');
+const nameBox = document.getElementById('birdName');
+const quizBtn = document.getElementById('quizBtn');
+const knowBtn = document.getElementById('knowBtn');
+const dontBtn = document.getElementById('dontKnowBtn');
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+async function showBird(){
   const location = document.querySelector('input[name="location"]:checked').value;
-  const list = birdImages[location] || birdImages.all;
-  currentBird = list[Math.floor(Math.random() * list.length)];
-  const img = document.getElementById("birdImage");
-  img.src = currentBird[0];
-  img.alt = currentBird[1];
-  img.style.display = "block";
-  document.getElementById("options").style.display = "block";
-  document.getElementById("birdName").textContent = "";
-});
+  const pool = SETS[location] || SETS.all;
+  const birdName = pick(pool);
+  current = { name: birdName, tried: 0 };
+  nameBox.textContent = '';
+  knowBtn.disabled = false; dontBtn.disabled = false;
+  img.style.display = 'block';
+  tryNextImage();
+}
 
-document.getElementById("knowBtn").addEventListener("click", () => {
-  document.getElementById("quizBtn").click();
-});
-
-document.getElementById("dontKnowBtn").addEventListener("click", () => {
-  if (currentBird) {
-    document.getElementById("birdName").textContent = currentBird[1];
+function tryNextImage(){
+  const list = CANDIDATES[current.name] || [];
+  if(current.tried >= list.length){
+    // Final guaranteed fallback
+    img.src = INLINE_FALLBACK;
+    img.alt = `${current.name} (fallback)`;
+    return;
   }
-});
+  const url = list[current.tried++];
+  // Attach one-time handlers
+  img.onerror = () => { tryNextImage(); };
+  img.onload = () => { /* loaded fine */ };
+  img.referrerPolicy = 'no-referrer';
+  img.crossOrigin = 'anonymous';
+  img.src = url;
+  img.alt = current.name;
+}
+
+quizBtn.addEventListener('click', showBird);
+knowBtn.addEventListener('click', showBird);
+dontBtn.addEventListener('click', () => { if(current) nameBox.textContent = `It’s a ${current.name}.`; });
+
+// --- Self test: quickly probe one URL from each bird and report which load
+async function selfTest(){
+  const result = document.getElementById('selfTestResult');
+  result.textContent = 'Testing…';
+  const birds = Object.keys(CANDIDATES);
+  let ok=0, fail=0;
+  for(const b of birds){
+    const testUrl = CANDIDATES[b][0];
+    try {
+      await new Promise((res,rej)=>{
+        const tImg = new Image();
+        tImg.referrerPolicy = 'no-referrer';
+        tImg.crossOrigin = 'anonymous';
+        tImg.onload = () => res();
+        tImg.onerror = () => rej();
+        tImg.src = testUrl + (testUrl.includes('?')?'&':'?') + 'cachebust=' + Date.now();
+      });
+      ok++;
+    } catch { fail++; }
+  }
+  result.innerHTML = `<span class="ok">Loaded: ${ok}</span> • <span class="bad">Failed: ${fail}</span>. If some failed, the quiz will auto‑fallback so you’ll still see an image.`;
+}
+
+document.getElementById('selfTestBtn').addEventListener('click', selfTest);
 </script>
 </body>
 </html>
