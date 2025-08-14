@@ -40,50 +40,44 @@
   </div>
 
 <script>
-const birdData = {
+const birdImages = {
   all: [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg", name: "American Robin" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/8/84/Northern_Cardinal_male.jpg", name: "Northern Cardinal" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg", name: "Blue Jay" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/5/51/Mallard_drake.jpg", name: "Mallard" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/b/b4/European_Goldfinch.jpg", name: "European Goldfinch" }
+    "https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/84/Northern_Cardinal_male.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/5/51/Mallard_drake.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/b/b4/European_Goldfinch.jpg"
   ],
   us: [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg", name: "American Robin" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/8/84/Northern_Cardinal_male.jpg", name: "Northern Cardinal" },
-    { src: "https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg", name: "Blue Jay" }
+    "https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/84/Northern_Cardinal_male.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg"
   ],
   midwest: [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg", name: "American Robin" }
+    "https://upload.wikimedia.org/wikipedia/commons/5/56/American_Robin.jpg"
   ],
   east: [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg", name: "Blue Jay" }
+    "https://upload.wikimedia.org/wikipedia/commons/8/80/Blue_Jay.jpg"
   ],
   west: [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/4/47/California_Scrub_Jay.jpg", name: "California Scrub Jay" }
+    "https://upload.wikimedia.org/wikipedia/commons/4/47/California_Scrub_Jay.jpg"
   ],
   south: [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Northern_Mockingbird.jpg", name: "Northern Mockingbird" }
+    "https://upload.wikimedia.org/wikipedia/commons/5/5d/Northern_Mockingbird.jpg"
   ],
   canada: [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/3/35/Gray_Jay.jpg", name: "Gray Jay" }
+    "https://upload.wikimedia.org/wikipedia/commons/3/35/Gray_Jay.jpg"
   ],
   europe: [
-    { src: "https://upload.wikimedia.org/wikipedia/commons/b/b4/European_Goldfinch.jpg", name: "European Goldfinch" }
+    "https://upload.wikimedia.org/wikipedia/commons/b/b4/European_Goldfinch.jpg"
   ]
 };
 
-let currentBird = null;
-
-function getRandomBird(location) {
-  const list = birdData[location] || birdData.all;
-  return list[Math.floor(Math.random() * list.length)];
-}
-
 document.getElementById("quizBtn").addEventListener("click", () => {
   const location = document.querySelector('input[name="location"]:checked').value;
-  currentBird = getRandomBird(location);
-  document.getElementById("birdImage").src = currentBird.src;
+  const list = birdImages[location] || birdImages.all;
+  const randomImage = list[Math.floor(Math.random() * list.length)];
+  document.getElementById("birdImage").src = randomImage;
   document.getElementById("birdImage").style.display = "block";
   document.getElementById("options").style.display = "block";
   document.getElementById("birdName").textContent = "";
@@ -94,7 +88,7 @@ document.getElementById("knowBtn").addEventListener("click", () => {
 });
 
 document.getElementById("dontKnowBtn").addEventListener("click", () => {
-  document.getElementById("birdName").textContent = `It's a ${currentBird.name}.`;
+  document.getElementById("birdName").textContent = "Sorry, I can't tell the name automatically.";
 });
 </script>
 </body>
